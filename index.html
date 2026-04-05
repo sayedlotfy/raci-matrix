@@ -92,8 +92,209 @@
         </footer>
     </main>
 <script>
-// Complete RACI Matrix JavaScript Code will be added by user
-// Due to size limitations, please copy the full script from the original file
+    let currentLang = 'ar';
+let activeChartFilter = 'all';
+const uiStrings = {
+    ar: {
+        appTitle: "شركة المنابر للاستشارات الهندسية | قسم التصميم",
+        welcomeTitle: "مصفوفة RACI",
+        welcomeDesc: "أداة تفاعلية متطورة لإدارة مصفوفة الصلاحيات بين الرياض والقاهرة. تضمن الوضوح التام في اتخاذ القرار وتوزيع المهام.",
+        chartTitle: "تحليل العبء الوظيفي",
+        chartDesc: "انقر على الأعمدة لتصفية المهام الخاصة بكل دور وظيفي.",
+        labelRole: "الدور الوظيفي",
+        labelPhase: "المرحلة",
+        labelSearch: "بحث عن نشاط...",
+        allRoles: "كافة الأدوار",
+        allPhases: "كافة المراحل",
+        noteLabel: "💡 ملاحظة:",
+        printBtnText: "طباعة المصفوفة",
+        phases: { "1": "1. إدارة التسعير والتعاقد", "2": "2. إعداد الدراسات والفكرة", "3": "3. تنفيذ تطوير التصميم", "4": "4. استخراج الموافقات والرخصة", "5": "5. إنتاج المخطط التفصيلية", "6": "6. تنفيذ التسليم والإغلاق", "7": "7. تنفيذ الأنشطة المستمرة" },
+        legend: [{ key: "R", title: "المنفذ", desc: "القائم على التنفيذ" }, { key: "A", title: "المحاسب", desc: "صاحب القرار النهائي" }, { key: "C", title: "مستشار", desc: "يُستشار قبلاً" }, { key: "I", title: "مُطلع", desc: "يُحيط علماً" }],
+        chartLegend: { r: "المنفذ (R)", a: "المحاسب (A)", c: "مستشار (C)", i: "مطلع (I)" }
+    },
+    en: {
+        appTitle: "Al Mnabr Engineering | Design Department",
+        welcomeTitle: "RACI Matrix",
+        welcomeDesc: "Advanced interactive tool for managing the authority matrix between Riyadh and Cairo. Ensures total clarity in decision-making and task distribution.",
+        chartTitle: "Role Load Analysis",
+        chartDesc: "Click on bars to filter activities for a specific role.",
+        labelRole: "Job Role",
+        labelPhase: "Project Phase",
+        labelSearch: "Search activities...",
+        allRoles: "All Roles",
+        allPhases: "All Phases",
+        noteLabel: "💡 Note:",
+        printBtnText: "Print Matrix",
+        phases: { "1": "1. Pricing & Contracting Mgmt", "2": "2. Preparation of Studies & Concept", "3": "3. Executing Design Development", "4": "4. Obtaining Approvals & Permits", "5": "5. Production of Detailed Drawings", "6": "6. Executing Delivery & Closing", "7": "7. Executing Recurring Activities" },
+        legend: [{ key: "R", title: "Responsible", desc: "Performs task" }, { key: "A", title: "Accountable", desc: "Decision maker" }, { key: "C", title: "Consulted", desc: "Provides input" }, { key: "I", title: "Informed", desc: "Kept updated" }],
+        chartLegend: { r: "Responsible (R)", a: "Accountable (A)", c: "Consulted (C)", i: "Informed (I)" }
+    }
+};
+const roleKeys = {
+    "design_mgmt": { ar: "إدارة التصميم", en: "Design Mgmt" },
+    "bd_sales": { ar: "تطوير الأعمال", en: "BD & Sales" },
+    "exec_mgmt": { ar: "الإدارة التنفيذية", en: "Exec Mgmt" },
+    "pm_riyadh": { ar: "مدير المشروع", en: "PM Riyadh" },
+    "pricing": { ar: "وحدة التسعير", en: "Pricing Unit" },
+    "coord_cairo": { ar: "منسق القاهرة", en: "Cairo Coord" },
+    "team_cairo": { ar: "الفريق الفني", en: "Technical Team" },
+    "licensing_team": { ar: "التراخيص", en: "Licensing" },
+    "finance": { ar: "المالية", en: "Finance" },
+    "contracts": { ar: "العقود", en: "Contracts" }
+};
+    const raciData = [
+    { id: 99, phase: "1", activity: { ar: "مناقشة الفرصة الأولية للمشروع", en: "Discussing Initial Project Opportunity" }, bd_sales: "R", design_mgmt: "A", pm_riyadh: "C", team_cairo: "C", exec_mgmt: "C", pricing: "C", licensing_team: "C", note: { ar: "أول إجراء قبل التسعير", en: "First action before pricing" } },
+    { id: 101, phase: "1", activity: { ar: "التواصل مع العميل لحصر المتطلبات", en: "Communicating with Client for Requirements" }, bd_sales: "R", design_mgmt: "A", exec_mgmt: "C", pricing: "R", pm_riyadh: "I" },
+    { id: 102, phase: "1", activity: { ar: "إعداد ومراجعة واعتماد العقد", en: "Preparing, Reviewing & Approving the Contract" }, contracts: "R", exec_mgmt: "A", design_mgmt: "C", finance: "C", pm_riyadh: "C" },
+    { id: 106, phase: "1", activity: { ar: "تحديد السعر النهائي للمشروع", en: "Determining Final Project Price" }, pm_riyadh: "C", design_mgmt: "R", exec_mgmt: "A", pricing: "C" },
+    { id: 201, phase: "2", activity: { ar: "إصدار تعميد بدء العمل", en: "Issuing Start Authorization" }, pm_riyadh: "A", coord_cairo: "R", design_mgmt: "C", exec_mgmt: "I" },
+    { id: 207, phase: "2", activity: { ar: "مراجعة وتدقيق تطابق الكود", en: "Reviewing Code Compliance" }, coord_cairo: "A/R", design_mgmt: "C", pm_riyadh: "I", licensing_team: "C" },
+    { id: 303, phase: "3", activity: { ar: "تنفيذ فحص التنسيق الفني", en: "Executing Coordination Review" }, coord_cairo: "A/R", design_mgmt: "C", pm_riyadh: "I" },
+    { id: 401, phase: "4", activity: { ar: "رفع ومتابعة طلب الترخيص", en: "Submitting & Following-up Permit Request" }, pm_riyadh: "A", licensing_team: "R", coord_cairo: "I" },
+    { id: 504, phase: "5", activity: { ar: "تنفيذ التسليم النهائي للعميل", en: "Executing Final Client Submission" }, pm_riyadh: "R/A", coord_cairo: "I" },
+    { id: 701, phase: "7", activity: { ar: "طلب إصدار المطالبات المالية", en: "Requesting Invoicing" }, pm_riyadh: "R", design_mgmt: "A/C", finance: "I" },
+    { id: 704, phase: "7", activity: { ar: "إدارة ومعالجة أوامر التغيير", en: "Managing Change Orders" }, pm_riyadh: "R", coord_cairo: "C", team_cairo: "C", contracts: "C", design_mgmt: "A" },
+    { id: 707, phase: "7", activity: { ar: "رصد وإدارة مخاطر المشروع", en: "Monitoring & Managing Project Risks" }, pm_riyadh: "A/R", design_mgmt: "C", coord_cairo: "I" },
+    { id: 708, phase: "7", activity: { ar: "إدارة وتحديث الجدول الزمني", en: "Managing & Updating Schedule" }, pm_riyadh: "R", design_mgmt: "A", team_cairo: "C", coord_cairo: "I" },
+    { id: 709, phase: "7", activity: { ar: "إدارة ومراقبة ربحية المشروع", en: "Managing & Monitoring Profitability" }, pm_riyadh: "R", design_mgmt: "A", finance: "C" },
+    { id: 710, phase: "7", activity: { ar: "إدارة الموردين مالياً", en: "Managing Vendors (Financial)" }, pm_riyadh: "R", finance: "C", exec_mgmt: "A" },
+    { id: 711, phase: "7", activity: { ar: "إدارة الموردين فنياً", en: "Managing Vendors (Technical)" }, team_cairo: "R", pm_riyadh: "C", design_mgmt: "A", coord_cairo: "I" },
+    { id: 706, phase: "7", activity: { ar: "إدارة وأرشفة وثائق المشروع", en: "Managing & Archiving Project Documentation" }, pm_riyadh: "A/R", team_cairo: "I", coord_cairo: "I" }
+];
+let loadChartInstance = null;
+    function setLanguage(lang) {
+    currentLang = lang;
+    const html = document.getElementById('mainHtml');
+    html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    html.lang = lang;
+    document.getElementById('btnAr').classList.toggle('active', lang === 'ar');
+    document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+    document.getElementById('appTitle').innerText = uiStrings[lang].appTitle;
+    document.getElementById('welcomeTitle').innerText = uiStrings[lang].welcomeTitle;
+    document.getElementById('welcomeDesc').innerText = uiStrings[lang].welcomeDesc;
+    document.getElementById('chartTitle').innerText = uiStrings[lang].chartTitle;
+    document.getElementById('chartDesc').innerText = uiStrings[lang].chartDesc;
+    document.getElementById('labelRole').innerText = uiStrings[lang].labelRole;
+    document.getElementById('labelPhase').innerText = uiStrings[lang].labelPhase;
+    document.getElementById('labelSearch').innerText = uiStrings[lang].labelSearch;
+    document.getElementById('printBtnText').innerText = uiStrings[lang].printBtnText;
+    renderLegend(); updateFilters(); renderMatrix(); updateChart();
+}
+function renderLegend() {
+    const container = document.getElementById('legendStrip');
+    container.innerHTML = '';
+    uiStrings[currentLang].legend.forEach(item => {
+        const badge = document.createElement('div');
+        badge.className = 'legend-badge';
+        const dotColor = getBadgeColor(item.key);
+        badge.innerHTML = `<span class="w-7 h-7 flex items-center justify-center rounded-full text-white font-bold text-sm ${dotColor}">${item.key}</span><div class="flex flex-col ${currentLang === 'ar' ? 'text-right' : 'text-left'}"><span class="text-white font-bold text-[14px] leading-tight">${item.title}</span><span class="text-slate-400 text-[11px] leading-tight">${item.desc}</span></div>`;
+        container.appendChild(badge);
+    });
+}
+function getBadgeColor(key) {
+    if(key === 'A') return 'bg-red-500 shadow-md shadow-red-500/20';
+    if(key === 'R') return 'bg-emerald-500 shadow-md shadow-emerald-500/20';
+    if(key === 'C') return 'bg-amber-400 shadow-md shadow-amber-400/20';
+    if(key === 'I') return 'bg-sky-400 shadow-md shadow-sky-400/20';
+    return 'bg-slate-300';
+}
+function updateFilters() {
+    const rf = document.getElementById('roleFilter');
+    const pf = document.getElementById('phaseFilter');
+    const prevRole = rf.value;
+    const prevPhase = pf.value;
+    rf.innerHTML = `<option value="all">${uiStrings[currentLang].allRoles}</option>`;
+    Object.entries(roleKeys).forEach(([k, v]) => { rf.innerHTML += `<option value="${k}">${v[currentLang]}</option>`; });
+    pf.innerHTML = `<option value="all">${uiStrings[currentLang].allPhases}</option>`;
+    Object.entries(uiStrings[currentLang].phases).forEach(([k, v]) => { pf.innerHTML += `<option value="${k}">${v}</option>`; });
+    if(prevRole) rf.value = prevRole;
+    if(prevPhase) pf.value = prevPhase;
+}
+    function updateChart() {
+    const ctx = document.getElementById('loadChart').getContext('2d');
+    const roles = Object.keys(roleKeys);
+    const dataSets = roles.map(key => {
+        let r=0, a=0, c=0, i=0;
+        raciData.forEach(row => {
+            const val = row[key] || '-';
+            if(val.includes('R')) r++;
+            if(val.includes('A')) a++;
+            if(val.includes('C')) c++;
+            if(val.includes('I')) i++;
+        });
+        return { r, a, c, i };
+    });
+    if(loadChartInstance) loadChartInstance.destroy();
+    Chart.defaults.font.family = "'Times New Roman', Times, serif";
+    loadChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: roles.map(k => roleKeys[k][currentLang]),
+            datasets: [
+                { label: uiStrings[currentLang].chartLegend.r, data: dataSets.map(d => d.r), backgroundColor: 'rgba(16, 185, 129, 0.9)' },
+                { label: uiStrings[currentLang].chartLegend.a, data: dataSets.map(d => d.a), backgroundColor: 'rgba(239, 68, 68, 0.9)' },
+                { label: uiStrings[currentLang].chartLegend.c, data: dataSets.map(d => d.c), backgroundColor: 'rgba(245, 158, 11, 0.9)' },
+                { label: uiStrings[currentLang].chartLegend.i, data: dataSets.map(d => d.i), backgroundColor: 'rgba(59, 130, 246, 0.9)' }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            onClick: (evt, item) => {
+                if (item.length > 0) {
+                    const index = item[0].index;
+                    const roleId = Object.keys(roleKeys)[index];
+                    document.getElementById('roleFilter').value = roleId;
+                    renderMatrix();
+                }
+            },
+            scales: { x: { stacked: true, ticks: { font: { size: 14 } } }, y: { stacked: true, ticks: { font: { size: 14 } } } },
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 14, weight: 'bold' } } } }
+        }
+    });
+}
+function getBadgeStyle(val) {
+    if(val.includes('A')) return 'bg-red-500 text-white shadow-xl shadow-red-200/50';
+    if(val.includes('R')) return 'bg-emerald-500 text-white shadow-xl shadow-emerald-200/50';
+    if(val.includes('C')) return 'bg-amber-400 text-slate-900 shadow-xl shadow-amber-100/50';
+    if(val.includes('I')) return 'bg-sky-400 text-white shadow-xl shadow-sky-100/50';
+    return 'bg-slate-100 text-slate-300';
+}
+    function renderMatrix() {
+    const grid = document.getElementById('matrixGrid');
+    const roleVal = document.getElementById('roleFilter').value;
+    const phaseVal = document.getElementById('phaseFilter').value;
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    grid.innerHTML = '';
+    const filtered = raciData.filter(item => {
+        const matchesRole = roleVal === 'all' || (item[roleVal] && item[roleVal] !== '-');
+        const matchesPhase = phaseVal === 'all' || item.phase === phaseVal;
+        const matchesSearch = searchVal === '' || item.activity[currentLang].toLowerCase().includes(searchVal);
+        return matchesRole && matchesPhase && matchesSearch;
+    });
+    filtered.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'glass-panel p-8 flex flex-col md:flex-row gap-8 items-start md:items-center';
+        let rolesHtml = `<div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-10 gap-3 w-full">`;
+        Object.keys(roleKeys).forEach(key => {
+            const val = task[key] || '-';
+            const active = val !== '-';
+            rolesHtml += `<div class="role-badge flex flex-col items-center justify-center p-3 rounded-[1.75rem] border border-transparent ${active ? getBadgeStyle(val) : 'bg-slate-50/50 text-slate-200'}"><span class="text-base font-bold">${val}</span><span class="text-[10px] text-center leading-tight mt-1.5 opacity-95 font-bold">${roleKeys[key][currentLang]}</span></div>`;
+        });
+        rolesHtml += '</div>';
+        card.innerHTML = `<div class="md:w-1/4 min-w-[200px] text-right"><span class="text-[11px] font-bold text-blue-700 uppercase tracking-widest bg-blue-100 px-3 py-1 rounded-full border border-blue-200">${uiStrings[currentLang].phases[task.phase]}</span><h4 class="text-lg font-bold text-slate-900 mt-3 leading-tight">${task.activity[currentLang]}</h4>${task.note ? `<p class="text-[12px] text-amber-800 mt-2 bg-amber-50/90 px-3 py-1.5 rounded-xl border border-amber-200 leading-relaxed font-bold italic">${uiStrings[currentLang].noteLabel} ${task.note[currentLang]}</p>` : ''}</div><div class="w-full md:w-3/4">${rolesHtml}</div>`;
+        grid.appendChild(card);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    setLanguage('ar');
+    const rf = document.getElementById('roleFilter');
+    const pf = document.getElementById('phaseFilter');
+    const si = document.getElementById('searchInput');
+    [rf, pf].forEach(el => el.addEventListener('change', renderMatrix));
+    si.addEventListener('input', renderMatrix);
+});
 </script>
 </body>
 </html>
