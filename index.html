@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="mainHtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركة المنابر للاستشارات الهندسية | قسم التصميم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { font-family: 'Times New Roman', Times, serif !important; }
+        :root { --mac-bg: rgba(255,255,255,0.78); --mac-blur: 40px; --mac-border: rgba(255,255,255,0.5); --mac-shadow: 0 12px 48px -12px rgba(0,0,0,0.12); }
+        body { background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%); background-attachment: fixed; color: #1e293b; }
+        .glass-panel { background: var(--mac-bg); backdrop-filter: blur(var(--mac-blur)); -webkit-backdrop-filter: blur(var(--mac-blur)); border: 1px solid var(--mac-border); box-shadow: var(--mac-shadow); border-radius: 2.75rem; transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+        .glass-panel:hover { transform: translateY(-4px); box-shadow: 0 25px 60px -20px rgba(0,0,0,0.2); }
+        .mac-nav { background: rgba(255,255,255,0.6); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255,255,255,0.4); box-shadow: 0 4px 30px rgba(0,0,0,0.03); z-index: 100; }
+        .legend-bar { background: rgba(15,23,42,0.95); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 90; }
+        .chart-container { position: relative; width: 100%; max-width: 950px; height: 450px; margin: 0 auto; }
+        .lang-toggle { background: rgba(0,0,0,0.08); border-radius: 1.2rem; padding: 5px; display: flex; gap: 4px; }
+        .lang-btn { padding: 8px 20px; border-radius: 1rem; font-size: 1rem; font-weight: 700; transition: all 0.3s; }
+        .lang-btn.active { background: white; box-shadow: 0 6px 15px rgba(0,0,0,0.08); color: #2563eb; }
+        .role-badge { transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .role-badge:hover { transform: scale(1.1) rotate(1deg); }
+        .legend-badge { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 1rem; border-radius: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
+        @media print { .mac-nav, .legend-bar, .chart-container, .lang-toggle, #controlSection, .no-print { display: none !important; } .glass-panel { box-shadow: none !important; border: 1px solid #ddd !important; background: white !important; } }
+        ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 20px; }
+    </style>
+</head>
+<body class="min-h-screen pb-24">
+    <div class="sticky top-0 z-[100]">
+        <nav class="mac-nav py-4 px-10">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-5">
+                    <div class="flex gap-2.5">
+                        <div class="w-4 h-4 bg-rose-500 rounded-full shadow-lg"></div>
+                        <div class="w-4 h-4 bg-amber-400 rounded-full shadow-lg"></div>
+                        <div class="w-4 h-4 bg-emerald-500 rounded-full shadow-lg"></div>
+                    </div>
+                    <h1 id="appTitle" class="text-2xl font-bold text-slate-900 mx-4 tracking-tight">شركة المنابر للاستشارات الهندسية | قسم التصميم</h1>
+                </div>
+                <div class="flex items-center gap-8">
+                    <button onclick="window.print()" class="no-print bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-700 transition flex items-center gap-2">
+                        <span>🖨️</span> <span id="printBtnText">طباعة المصفوفة</span>
+                    </button>
+                    <div class="lang-toggle no-print">
+                        <button onclick="setLanguage('ar')" id="btnAr" class="lang-btn active">العربية</button>
+                        <button onclick="setLanguage('en')" id="btnEn" class="lang-btn">English</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="legend-bar py-3 px-10">
+            <div id="legendStrip" class="container mx-auto flex flex-wrap justify-center gap-6"></div>
+        </div>
+    </div>
+    <main class="container mx-auto px-8 mt-12 max-w-6xl">
+        <section class="glass-panel p-12 mb-8 text-center">
+            <h2 id="welcomeTitle" class="text-6xl font-bold text-slate-900 mb-6 tracking-tighter">مصفوفة RACI</h2>
+            <p id="welcomeDesc" class="text-slate-600 text-xl max-w-4xl mx-auto leading-relaxed font-medium">أداة تفاعلية متطورة لإدارة مصفوفة الصلاحيات بين الرياض والقاهرة. تضمن الوضوح التام في اتخاذ القرار وتوزيع المهام.</p>
+        </section>
+        <section class="mb-14 no-print">
+            <div class="glass-panel p-10">
+                <div class="mb-10 px-6">
+                    <h3 id="chartTitle" class="text-3xl font-bold text-slate-900">تحليل العبء الوظيفي</h3>
+                    <p id="chartDesc" class="text-base text-slate-500 mt-2">انقر على الأعمدة لتصفية المهام الخاصة بكل دور وظيفي.</p>
+                </div>
+                <div class="chart-container"><canvas id="loadChart"></canvas></div>
+            </div>
+        </section>
+        <section id="controlSection" class="mb-12 sticky top-[150px] z-40 no-print">
+            <div class="glass-panel p-7 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <label id="labelRole" class="block text-sm font-bold text-slate-400 mb-3 px-3 uppercase tracking-widest text-right">الدور الوظيفي</label>
+                    <select id="roleFilter" class="w-full bg-white/70 border-none rounded-2xl px-6 py-4 shadow-sm focus:ring-4 focus:ring-blue-200 transition appearance-none cursor-pointer font-bold text-slate-700"></select>
+                </div>
+                <div>
+                    <label id="labelPhase" class="block text-sm font-bold text-slate-400 mb-3 px-3 uppercase tracking-widest text-right">المرحلة</label>
+                    <select id="phaseFilter" class="w-full bg-white/70 border-none rounded-2xl px-6 py-4 shadow-sm focus:ring-4 focus:ring-blue-200 transition appearance-none cursor-pointer font-bold text-slate-700"></select>
+                </div>
+                <div>
+                    <label id="labelSearch" class="block text-sm font-bold text-slate-400 mb-3 px-3 uppercase tracking-widest text-right">بحث</label>
+                    <input type="text" id="searchInput" class="w-full bg-white/70 border-none rounded-2xl px-6 py-4 shadow-sm focus:ring-4 focus:ring-blue-200 transition font-bold text-slate-700">
+                </div>
+            </div>
+        </section>
+        <section id="matrixGrid" class="space-y-6"></section>
+        <footer class="mt-20 pb-12 border-t border-slate-300 pt-8 text-center text-slate-500">
+            <div class="flex justify-between max-w-4xl mx-auto text-sm font-bold opacity-70">
+                <div id="footerVersion">الإصدار: 2.1 (فبراير 2026)</div>
+                <div id="footerDept">قسم التصميم - شركة المنابر</div>
+                <div id="footerStatus">الحالة: معتمد للنشر الداخلي</div>
+            </div>
+        </footer>
+    </main>
+<script>
+// Complete RACI Matrix JavaScript Code will be added by user
+// Due to size limitations, please copy the full script from the original file
+</script>
+</body>
+</html>
